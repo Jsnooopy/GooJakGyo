@@ -1,11 +1,13 @@
 package com.goojakgyo.goojakgyo.member.service;
 
 import com.goojakgyo.goojakgyo.member.domain.Member;
+import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
 import com.goojakgyo.goojakgyo.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,4 +49,18 @@ public class MemberService {
     return member;
   }
 
+  public List<MemberListReqDto> findAll() {
+    List<Member> members = memberRepository.findAll();
+    List<MemberListReqDto> memberListReqDtos = new ArrayList<>();
+
+    for (Member m : members) {
+      MemberListReqDto memberListReqDto = new MemberListReqDto();
+      memberListReqDto.setId(m.getId());
+      memberListReqDto.setName(m.getName());
+      memberListReqDto.setEmail(m.getEmail());
+      memberListReqDtos.add(memberListReqDto);
+    }
+
+    return memberListReqDtos;
+  }
 }
