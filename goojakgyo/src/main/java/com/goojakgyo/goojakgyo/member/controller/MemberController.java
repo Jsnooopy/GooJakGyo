@@ -2,14 +2,17 @@ package com.goojakgyo.goojakgyo.member.controller;
 
 import com.goojakgyo.goojakgyo.common.earth.JwtTokenProvider;
 import com.goojakgyo.goojakgyo.member.domain.Member;
+import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
 import com.goojakgyo.goojakgyo.member.service.MemberService;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,11 +42,17 @@ public class MemberController {
 
     // 일치할 경우 access token 발행
     String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole().toString());
-    Map<String, Object> logInfo = new HashMap<>();
-    logInfo.put("id", member.getId());
-    logInfo.put("token", jwtToken);
+    Map<String, Object> loginInfo = new HashMap<>();
+    loginInfo.put("id", member.getId());
+    loginInfo.put("token", jwtToken);
 
-    return new ResponseEntity<>(logInfo, HttpStatus.OK);
+    return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+  }
+
+  @GetMapping("/list")
+  public ResponseEntity<?> memberList() {
+    List<MemberListReqDto> dtos = memberService.findAll();
+    return new ResponseEntity<>(dtos, HttpStatus.OK);
   }
 
 }
