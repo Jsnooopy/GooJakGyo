@@ -1,6 +1,7 @@
 package com.goojakgyo.goojakgyo.member.service;
 
 import com.goojakgyo.goojakgyo.member.domain.Member;
+import com.goojakgyo.goojakgyo.member.domain.SocialType;
 import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
@@ -63,4 +64,22 @@ public class MemberService {
 
     return memberListReqDtos;
   }
+
+  public Member getMemberBySocialId(String socialId) {
+    Member member = memberRepository.findBySocialId(socialId).orElse(null);
+
+    return member;
+  }
+
+  public Member createOauth(String socialId, String name, String email, SocialType socialType) {
+    Member newMember = Member.builder()
+        .name(name)
+        .email(email)
+        .socialType(socialType)
+        .socialId(socialId)
+        .build();
+
+    return memberRepository.save(newMember);
+  }
+
 }
