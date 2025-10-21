@@ -54,7 +54,7 @@ public class JwtAuthFilter extends GenericFilter {
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + claims.get("role")));
         UserDetails userDetails = new User(claims.getSubject(), "", authorities);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, jwtToken, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }
 

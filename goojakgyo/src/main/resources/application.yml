@@ -19,3 +19,16 @@ jwt:
   # goojakgyoaccesstokengoojakgyoaccesstokengoojakgyoaccesstokengoojakgyoaccesstoken
   secretKey: Z29vamFrZ3lvYWNjZXNzdG9rZW5nb29qYWtneW9hY2Nlc3N0b2tlbmdvb2pha2d5b2FjY2Vzc3Rva2VuZ29vamFrZ3lvYWNjZXNzdG9rZW4=
   expiration: 3000 # 3000분
+
+oauth:
+  google:
+    clientIdPlaceholder: xxxx
+    clientSecretPlaceholder: yyyy
+    redirect-uri: http://localhost:3000/oauth/google/redirect
+  kakao:
+    clientIdPlaceholder: xxxx
+    redirect-uri: http://localhost:3000/oauth/kakao/redirect
+  naver:
+    clientIdPlaceholder: xxxx
+    clientSecretPlaceholder: yyyy
+    redirect-uri: http://localhost:3000/oauth/naver/redirect

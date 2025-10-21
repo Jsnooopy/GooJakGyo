@@ -32,4 +32,9 @@ public class Member {
   @Enumerated(EnumType.STRING)
   @Builder.Default
   private Role role = Role.USER;
+
+  @Enumerated(EnumType.STRING)
+  private SocialType socialType;
+
+  private String socialId;
 }
