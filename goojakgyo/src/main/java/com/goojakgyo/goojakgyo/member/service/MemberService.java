@@ -5,6 +5,7 @@ import com.goojakgyo.goojakgyo.member.domain.SocialType;
 import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
+import com.goojakgyo.goojakgyo.member.dto.OauthSaveReqDto;
 import com.goojakgyo.goojakgyo.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -34,6 +35,9 @@ public class MemberService {
         .name(memberSaveReqDto.getName())
         .email(memberSaveReqDto.getEmail())
         .password(passwordEncoder.encode(memberSaveReqDto.getPassword()))
+        .univName(memberSaveReqDto.getUnivName())
+        .major(memberSaveReqDto.getMajor())
+        .studentId(memberSaveReqDto.getStudentId())
         .build();
 
     return memberRepository.save(newMember);
@@ -71,12 +75,15 @@ public class MemberService {
     return member;
   }
 
-  public Member createOauth(String socialId, String name, String email, SocialType socialType) {
+  public Member createOauth(OauthSaveReqDto oauthSaveReqDto) {
     Member newMember = Member.builder()
-        .name(name)
-        .email(email)
-        .socialType(socialType)
-        .socialId(socialId)
+        .name(oauthSaveReqDto.getName())
+        .email(oauthSaveReqDto.getEmail())
+        .socialType(oauthSaveReqDto.getSocialType())
+        .socialId(oauthSaveReqDto.getSocialId())
+        .univName(oauthSaveReqDto.getUnivName())
+        .major(oauthSaveReqDto.getMajor())
+        .studentId(oauthSaveReqDto.getStudentId())
         .build();
 
     return memberRepository.save(newMember);
