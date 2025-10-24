@@ -1,16 +1,22 @@
 package com.goojakgyo.goojakgyo.member.service;
 
+import com.goojakgyo.goojakgyo.member.domain.Keyword;
 import com.goojakgyo.goojakgyo.member.domain.Member;
-import com.goojakgyo.goojakgyo.member.domain.SocialType;
+import com.goojakgyo.goojakgyo.member.domain.MemberKeyword;
+import com.goojakgyo.goojakgyo.member.domain.Role;
 import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
+import com.goojakgyo.goojakgyo.member.dto.MemberProfileResDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
 import com.goojakgyo.goojakgyo.member.dto.OauthSaveReqDto;
+import com.goojakgyo.goojakgyo.member.repository.KeywordRepository;
 import com.goojakgyo.goojakgyo.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +24,12 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class MemberService {
   private final MemberRepository memberRepository;
+  private final KeywordRepository keywordRepository;
   private final PasswordEncoder passwordEncoder;
 
-  public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
+  public MemberService(MemberRepository memberRepository, KeywordRepository keywordRepository, PasswordEncoder passwordEncoder) {
     this.memberRepository = memberRepository;
+    this.keywordRepository = keywordRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -31,6 +39,8 @@ public class MemberService {
       throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
     }
 
+    List<Keyword> selectedKeywords = keywordRepository.findAllById(memberSaveReqDto.getKeywordIds());
+
     Member newMember = Member.builder()
         .name(memberSaveReqDto.getName())
         .email(memberSaveReqDto.getEmail())
@@ -38,7 +48,13 @@ public class MemberService {
         .univName(memberSaveReqDto.getUnivName())
         .major(memberSaveReqDto.getMajor())
         .studentId(memberSaveReqDto.getStudentId())
+        .role(memberSaveReqDto.getRole())
         .build();
+
+    for (Keyword keyword : selectedKeywords) {
+      MemberKeyword memberKeyword = MemberKeyword.of(newMember, keyword);
+      newMember.addMemberKeyword(memberKeyword);
+    }
 
     return memberRepository.save(newMember);
   }
@@ -54,15 +70,34 @@ public class MemberService {
     return member;
   }
 
-  public List<MemberListReqDto> findAll() {
-    List<Member> members = memberRepository.findAll();
+  public List<MemberListReqDto> findMentors() {
+    List<Member> mentors = memberRepository.findByRole(Role.MENTOR);
     List<MemberListReqDto> memberListReqDtos = new ArrayList<>();
 
-    for (Member m : members) {
+    for (Member m : mentors) {
       MemberListReqDto memberListReqDto = new MemberListReqDto();
       memberListReqDto.setId(m.getId());
       memberListReqDto.setName(m.getName());
       memberListReqDto.setEmail(m.getEmail());
+      memberListReqDto.setUnivName(m.getUnivName());
+      memberListReqDto.setMajor(m.getMajor());
+      memberListReqDtos.add(memberListReqDto);
+    }
+
+    return memberListReqDtos;
+  }
+
+  public List<MemberListReqDto> findMentees() {
+    List<Member> mentees = memberRepository.findByRole(Role.MENTEE);
+    List<MemberListReqDto> memberListReqDtos = new ArrayList<>();
+
+    for (Member m : mentees) {
+      MemberListReqDto memberListReqDto = new MemberListReqDto();
+      memberListReqDto.setId(m.getId());
+      memberListReqDto.setName(m.getName());
+      memberListReqDto.setEmail(m.getEmail());
+      memberListReqDto.setUnivName(m.getUnivName());
+      memberListReqDto.setMajor(m.getMajor());
       memberListReqDtos.add(memberListReqDto);
     }
 
@@ -84,9 +119,33 @@ public class MemberService {
         .univName(oauthSaveReqDto.getUnivName())
         .major(oauthSaveReqDto.getMajor())
         .studentId(oauthSaveReqDto.getStudentId())
+        .role(oauthSaveReqDto.getRole())
         .build();
 
+    List<Keyword> selectedKeywords = keywordRepository.findAllById(oauthSaveReqDto.getKeywordIds());
+    for (Keyword keyword : selectedKeywords) {
+      MemberKeyword memberKeyword = MemberKeyword.of(newMember, keyword);
+      newMember.addMemberKeyword(memberKeyword);
+    }
+
     return memberRepository.save(newMember);
+  }
+
+  public MemberProfileResDto getMemberProfile(Long memberId) {
+    Member member = memberRepository.findById(memberId).orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다."));
+
+    List<String> keywordNames = member.getMemberKeywords().stream().map(MemberKeyword::getKeyword).map(k -> k.getKeywordName()).collect(Collectors.toList());
+
+    return MemberProfileResDto.builder()
+        .id(member.getId())
+        .name(member.getName())
+        .email(member.getEmail())
+        .profileImageUrl(member.getProfileImageUrl())
+        .univName(member.getUnivName())
+        .major(member.getMajor())
+        .studentId(member.getStudentId())
+        .keywords(keywordNames)
+        .build();
   }
 
 }
