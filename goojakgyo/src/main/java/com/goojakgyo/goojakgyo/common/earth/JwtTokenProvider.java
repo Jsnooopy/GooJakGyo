@@ -24,7 +24,7 @@ public class JwtTokenProvider {
 
   public String createToken(String email, String role) {
     Claims claims = Jwts.claims().setSubject(email);
-    claims.put("role", role); // "원래 : claims.put("Role", role); 이었는데 프론트엔드와 연동이 안되서 claims.put("role", role)로 변경
+    claims.put("Role", role); // "role" => "Role"로 다시 변경
     Date now = new Date();
 
     String token = Jwts.builder()

@@ -259,10 +259,10 @@ public class ChatService {
             return chatRoom.get().getId();
         }
 
-        // 만약에 1:1 채팅방이 ㅇ벗을 경우 새로운 채팅방 개설
+        // 만약에 1:1 채팅방이 없을 경우 새로운 채팅방 개설
         ChatRoom newRoom = ChatRoom.builder()
                 .isGroupChat("N")
-                .name(member.getName() + "-" + otherMember.getName())
+                .name(otherMember.getName())
                 .build();
         chatRoomRepository.save(newRoom);
 
