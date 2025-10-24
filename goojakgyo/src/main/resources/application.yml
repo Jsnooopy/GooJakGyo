@@ -12,7 +12,7 @@ spring:
     generate-ddl: true
     hibernate:
       # ?? update or validate? ??
-      ddl-auto: create
+      ddl-auto: validate
     show_sql: true
 
 jwt:
@@ -32,3 +32,10 @@ oauth:
     clientIdPlaceholder: xxxx
     clientSecretPlaceholder: yyyy
     redirect-uri: http://localhost:3000/oauth/naver/redirect
+
+  # 디버깅을 위해 로그 레벨 수준 제어 코드 추가
+  logging:
+    level:
+      root: INFO
+      org.springframework: DEBUG
+      org.springframework.web: DEBUG

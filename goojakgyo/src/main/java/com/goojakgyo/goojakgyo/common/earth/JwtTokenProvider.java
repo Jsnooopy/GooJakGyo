@@ -24,7 +24,7 @@ public class JwtTokenProvider {
 
   public String createToken(String email, String role) {
     Claims claims = Jwts.claims().setSubject(email);
-    claims.put("Role", role);
+    claims.put("role", role);
     Date now = new Date();
 
     String token = Jwts.builder()
