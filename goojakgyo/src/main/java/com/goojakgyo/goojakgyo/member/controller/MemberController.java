@@ -6,8 +6,9 @@ import com.goojakgyo.goojakgyo.member.domain.SocialType;
 import com.goojakgyo.goojakgyo.member.dto.AccessTokenDto;
 import com.goojakgyo.goojakgyo.member.dto.GoogleProfileDto;
 import com.goojakgyo.goojakgyo.member.dto.KakaoProfileDto;
-import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
+import com.goojakgyo.goojakgyo.member.dto.MemberListResDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
+import com.goojakgyo.goojakgyo.member.dto.MemberProfileResDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
 import com.goojakgyo.goojakgyo.member.dto.NaverProfileDto;
 import com.goojakgyo.goojakgyo.member.dto.OauthSaveReqDto;
@@ -24,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -170,10 +172,22 @@ public class MemberController {
     return new ResponseEntity<>(loginInfo, HttpStatus.OK);
   }
 
-  @GetMapping("/list")
-  public ResponseEntity<?> memberList() {
-    List<MemberListReqDto> dtos = memberService.findAll();
+  @GetMapping("/list/mentor")
+  public ResponseEntity<?> mentorList() {
+    List<MemberListResDto> dtos = memberService.findMentors();
     return new ResponseEntity<>(dtos, HttpStatus.OK);
+  }
+
+  @GetMapping("/list/mentee")
+  public ResponseEntity<?> menteeList() {
+    List<MemberListResDto> dtos = memberService.findMentees();
+    return new ResponseEntity<>(dtos, HttpStatus.OK);
+  }
+
+  @GetMapping("/{memberId}")
+  public ResponseEntity<?> memberProfile(@PathVariable Long memberId) {
+    MemberProfileResDto dto = memberService.getMemberProfile(memberId);
+    return new ResponseEntity<>(dto, HttpStatus.OK);
   }
 
 }
