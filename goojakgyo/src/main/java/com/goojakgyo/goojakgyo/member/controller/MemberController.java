@@ -6,7 +6,7 @@ import com.goojakgyo.goojakgyo.member.domain.SocialType;
 import com.goojakgyo.goojakgyo.member.dto.AccessTokenDto;
 import com.goojakgyo.goojakgyo.member.dto.GoogleProfileDto;
 import com.goojakgyo.goojakgyo.member.dto.KakaoProfileDto;
-import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
+import com.goojakgyo.goojakgyo.member.dto.MemberListResDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberProfileResDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
@@ -174,13 +174,13 @@ public class MemberController {
 
   @GetMapping("/list/mentor")
   public ResponseEntity<?> mentorList() {
-    List<MemberListReqDto> dtos = memberService.findMentors();
+    List<MemberListResDto> dtos = memberService.findMentors();
     return new ResponseEntity<>(dtos, HttpStatus.OK);
   }
 
   @GetMapping("/list/mentee")
   public ResponseEntity<?> menteeList() {
-    List<MemberListReqDto> dtos = memberService.findMentees();
+    List<MemberListResDto> dtos = memberService.findMentees();
     return new ResponseEntity<>(dtos, HttpStatus.OK);
   }
 

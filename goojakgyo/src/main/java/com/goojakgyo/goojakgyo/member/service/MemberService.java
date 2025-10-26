@@ -4,7 +4,7 @@ import com.goojakgyo.goojakgyo.member.domain.Keyword;
 import com.goojakgyo.goojakgyo.member.domain.Member;
 import com.goojakgyo.goojakgyo.member.domain.MemberKeyword;
 import com.goojakgyo.goojakgyo.member.domain.Role;
-import com.goojakgyo.goojakgyo.member.dto.MemberListReqDto;
+import com.goojakgyo.goojakgyo.member.dto.MemberListResDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberLoginReqDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberProfileResDto;
 import com.goojakgyo.goojakgyo.member.dto.MemberSaveReqDto;
@@ -15,7 +15,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -70,38 +69,38 @@ public class MemberService {
     return member;
   }
 
-  public List<MemberListReqDto> findMentors() {
+  public List<MemberListResDto> findMentors() {
     List<Member> mentors = memberRepository.findByRole(Role.MENTOR);
-    List<MemberListReqDto> memberListReqDtos = new ArrayList<>();
+    List<MemberListResDto> memberListResDtos = new ArrayList<>();
 
     for (Member m : mentors) {
-      MemberListReqDto memberListReqDto = new MemberListReqDto();
-      memberListReqDto.setId(m.getId());
-      memberListReqDto.setName(m.getName());
-      memberListReqDto.setEmail(m.getEmail());
-      memberListReqDto.setUnivName(m.getUnivName());
-      memberListReqDto.setMajor(m.getMajor());
-      memberListReqDtos.add(memberListReqDto);
+      MemberListResDto memberListResDto = new MemberListResDto();
+      memberListResDto.setId(m.getId());
+      memberListResDto.setName(m.getName());
+      memberListResDto.setEmail(m.getEmail());
+      memberListResDto.setUnivName(m.getUnivName());
+      memberListResDto.setMajor(m.getMajor());
+      memberListResDtos.add(memberListResDto);
     }
 
-    return memberListReqDtos;
+    return memberListResDtos;
   }
 
-  public List<MemberListReqDto> findMentees() {
+  public List<MemberListResDto> findMentees() {
     List<Member> mentees = memberRepository.findByRole(Role.MENTEE);
-    List<MemberListReqDto> memberListReqDtos = new ArrayList<>();
+    List<MemberListResDto> memberListResDtos = new ArrayList<>();
 
     for (Member m : mentees) {
-      MemberListReqDto memberListReqDto = new MemberListReqDto();
-      memberListReqDto.setId(m.getId());
-      memberListReqDto.setName(m.getName());
-      memberListReqDto.setEmail(m.getEmail());
-      memberListReqDto.setUnivName(m.getUnivName());
-      memberListReqDto.setMajor(m.getMajor());
-      memberListReqDtos.add(memberListReqDto);
+      MemberListResDto memberListResDto = new MemberListResDto();
+      memberListResDto.setId(m.getId());
+      memberListResDto.setName(m.getName());
+      memberListResDto.setEmail(m.getEmail());
+      memberListResDto.setUnivName(m.getUnivName());
+      memberListResDto.setMajor(m.getMajor());
+      memberListResDtos.add(memberListResDto);
     }
 
-    return memberListReqDtos;
+    return memberListResDtos;
   }
 
   public Member getMemberBySocialId(String socialId) {
