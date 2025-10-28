@@ -1,8 +1,11 @@
 
 spring:
+  redis:
+    host: localhost
+    port: 6379
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/goojakgyo?useSSL=false
+    url: jdbc:mysql://localhost:3306/goojakgyo?useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: 1234
   jpa:
@@ -18,7 +21,8 @@ spring:
 jwt:
   # goojakgyoaccesstokengoojakgyoaccesstokengoojakgyoaccesstokengoojakgyoaccesstoken
   secretKey: Z29vamFrZ3lvYWNjZXNzdG9rZW5nb29qYWtneW9hY2Nlc3N0b2tlbmdvb2pha2d5b2FjY2Vzc3Rva2VuZ29vamFrZ3lvYWNjZXNzdG9rZW4=
-  expiration: 3000 # 3000분
+  access-expiration: 30 # 30분
+  refresh-expiration: 4320 # 3일
 
 oauth:
   google:

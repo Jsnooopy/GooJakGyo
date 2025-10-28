@@ -1,6 +1,7 @@
 package com.goojakgyo.goojakgyo.common.earth;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.security.Key;
@@ -13,18 +14,21 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
   private final String secretKey;
-  private final int expiration;
+  private final int accessTokenExpiration;
+  private final int refreshTokenExpiration;
   private final Key SECRET_KEY;
 
-  public JwtTokenProvider(@Value("${jwt.secretKey}") String secretKey, @Value("${jwt.expiration}") int expiration) {
+  public JwtTokenProvider(@Value("${jwt.secretKey}") String secretKey, @Value("${jwt.access-expiration}") int accessTokenExpiration,
+      @Value("${jwt.refresh-expiration}") int refreshTokenExpiration) {
     this.secretKey = secretKey;
-    this.expiration = expiration;
+    this.accessTokenExpiration = accessTokenExpiration;
+    this.refreshTokenExpiration = refreshTokenExpiration;
     this.SECRET_KEY = new SecretKeySpec(java.util.Base64.getDecoder().decode(secretKey), SignatureAlgorithm.HS512.getJcaName());
   }
 
-  public String createToken(String email, String role) {
+  public String createToken(String email, String role, int expiration) {
     Claims claims = Jwts.claims().setSubject(email);
-    claims.put("role", role);
+    if (role!= null) claims.put("role", role);
     Date now = new Date();
 
     String token = Jwts.builder()
@@ -35,6 +39,32 @@ public class JwtTokenProvider {
         .compact();
 
     return token;
+  }
+
+  public String createAccessToken(String email, String role) {
+    return createToken(email, role, accessTokenExpiration);
+  }
+
+  public String createRefreshToken(String email) {
+    return createToken(email, null, refreshTokenExpiration);
+  }
+
+  public boolean validateToken(String token) {
+    try {
+      Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token);
+      return true;
+    } catch (JwtException | IllegalArgumentException e) {
+      return false;
+    }
+  }
+
+  public String getEmailFromToken(String token) {
+    return Jwts.parserBuilder()
+        .setSigningKey(SECRET_KEY)
+        .build()
+        .parseClaimsJws(token)
+        .getBody()
+        .getSubject();
   }
 
 }
