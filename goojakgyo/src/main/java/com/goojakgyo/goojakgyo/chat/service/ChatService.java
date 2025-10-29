@@ -88,6 +88,7 @@ public class ChatService {
         ChatParticipant chatParticipant = ChatParticipant.builder()
                 .chatRoom(chatRoom)
                 .member(member)
+                .displayName(chatRoomName) // 그룹채팅방일 땐 그대로 displayName 채팅방 이름으로 설정
                 .build();
         chatParticipantRepository.save(chatParticipant);
     }
@@ -126,15 +127,17 @@ public class ChatService {
         Optional<ChatParticipant> participant = chatParticipantRepository.findByChatRoomAndMember(chatRoom, member);
 
         if (!participant.isPresent()) {
-            addParticipantToRoom(chatRoom, member);
+            addParticipantToRoom(chatRoom, member, chatRoom.getName());
         }
     }
 
     // ChatParticipant 객체 생성 후 저장
-    public void addParticipantToRoom(ChatRoom chatRoom, Member member) {
+    // 표시되어야 할 채팅방 이름 파라미터에 추가
+    public void addParticipantToRoom(ChatRoom chatRoom, Member member, String roomName) {
         ChatParticipant chatParticipant = ChatParticipant.builder()
                 .chatRoom(chatRoom)
                 .member(member)
+                .displayName(roomName)
                 .build();
         chatParticipantRepository.save(chatParticipant);
     }
@@ -208,9 +211,10 @@ public class ChatService {
         // 현재 참여자가 속해있는 채팅방에서 읽지 않은 메시지의 개수 구하기
         for (ChatParticipant c : chatParticipants) {
             Long count = readStatusRepository.countByChatRoomAndMemberAndIsReadFalse(c.getChatRoom(), member);
+            String roomDisplayName = c.getDisplayName();
             MyChatListResDto dto = MyChatListResDto.builder()
                     .roomId(c.getChatRoom().getId())
-                    .roomName(c.getChatRoom().getName())
+                    .roomName(roomDisplayName) // DisplayName 띄우는 것으로 변경
                     .isGroupChat(c.getChatRoom().getIsGroupChat())
                     .unReadCount(count)
                     .build();
@@ -262,13 +266,13 @@ public class ChatService {
         // 만약에 1:1 채팅방이 없을 경우 새로운 채팅방 개설
         ChatRoom newRoom = ChatRoom.builder()
                 .isGroupChat("N")
-                .name(otherMember.getName())
+                .name(member.getName() + "-" + otherMember.getName())
                 .build();
         chatRoomRepository.save(newRoom);
 
         // 두 사람 모두 참여자로 새롭게 추가
-        addParticipantToRoom(newRoom, member);
-        addParticipantToRoom(newRoom, otherMember);
+        addParticipantToRoom(newRoom, member, otherMember.getName());
+        addParticipantToRoom(newRoom, otherMember, member.getName());
 
         return newRoom.getId();
     }
