@@ -147,4 +147,7 @@ public class MemberService {
         .build();
   }
 
+  public Member getMemberByEmail(String email) {
+    return memberRepository.findByEmail(email).orElse(null);
+  }
 }
