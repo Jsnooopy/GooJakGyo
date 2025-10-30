@@ -166,6 +166,7 @@ public class ChatService {
             ChatMessageDto chatMessageDto = ChatMessageDto.builder()
                     .message(c.getContent())
                     .senderEmail(c.getMember().getEmail())
+                    .senderName(c.getMember().getName()) // 이전 메시지 읽어올 때 보낸 사람 이름 정보도 같이 보냄
                     .build();
             chatMessageDtos.add(chatMessageDto);
         }

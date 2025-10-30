@@ -26,9 +26,11 @@ public class JwtTokenProvider {
     this.SECRET_KEY = new SecretKeySpec(java.util.Base64.getDecoder().decode(secretKey), SignatureAlgorithm.HS512.getJcaName());
   }
 
-  public String createToken(String email, String role, int expiration) {
+  // 토큰 생성 시 이름도 함께 넘기도록
+  public String createToken(String email, String name, String role, int expiration) {
     Claims claims = Jwts.claims().setSubject(email);
     if (role!= null) claims.put("role", role);
+    if (name != null) claims.put("name", name);
     Date now = new Date();
 
     String token = Jwts.builder()
@@ -41,12 +43,12 @@ public class JwtTokenProvider {
     return token;
   }
 
-  public String createAccessToken(String email, String role) {
-    return createToken(email, role, accessTokenExpiration);
+  public String createAccessToken(String email, String name, String role) {
+    return createToken(email, name, role, accessTokenExpiration);
   }
 
-  public String createRefreshToken(String email) {
-    return createToken(email, null, refreshTokenExpiration);
+  public String createRefreshToken(String email, String name) {
+    return createToken(email, name, null, refreshTokenExpiration);
   }
 
   public boolean validateToken(String token) {
