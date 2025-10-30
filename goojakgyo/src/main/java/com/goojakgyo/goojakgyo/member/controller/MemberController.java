@@ -71,8 +71,8 @@ public class MemberController {
   public ResponseEntity<?> oauthCreate(@RequestBody OauthSaveReqDto oauthSaveReqDto) {
     Member member = memberService.createOauth(oauthSaveReqDto);
 
-    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getName(), member.getRole().toString());
-    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getName());
+    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().toString());
+    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail());
 
     // Redis 저장
     RefreshToken redisRefreshToken = RefreshToken.builder()
@@ -106,8 +106,8 @@ public class MemberController {
     Member member = memberService.login(memberLoginReqDto);
 
     // 일치할 경우 access token & refresh token 발행
-    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getName(), member.getRole().toString());
-    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getName());
+    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().toString());
+    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail());
 
     // Redis 저장
     RefreshToken redisRefreshToken = RefreshToken.builder()
@@ -156,8 +156,8 @@ public class MemberController {
     }
 
     // 회원가입이 되어 있으면 access token & refresh token 발급
-    String accessToken = jwtTokenProvider.createAccessToken(originalMember.getEmail(), originalMember.getName(), originalMember.getRole().toString());
-    String refreshToken = jwtTokenProvider.createRefreshToken(originalMember.getEmail(), originalMember.getName());
+    String accessToken = jwtTokenProvider.createAccessToken(originalMember.getEmail(), originalMember.getRole().toString());
+    String refreshToken = jwtTokenProvider.createRefreshToken(originalMember.getEmail());
 
     // Redis 저장
     RefreshToken redisRefreshToken = RefreshToken.builder()
@@ -206,8 +206,8 @@ public class MemberController {
     }
 
     // 회원가입이 되어 있으면 access token & refresh token 발급
-    String accessToken = jwtTokenProvider.createAccessToken(originalMember.getEmail(), originalMember.getName(), originalMember.getRole().toString());
-    String refreshToken = jwtTokenProvider.createRefreshToken(originalMember.getEmail(), originalMember.getName());
+    String accessToken = jwtTokenProvider.createAccessToken(originalMember.getEmail(), originalMember.getRole().toString());
+    String refreshToken = jwtTokenProvider.createRefreshToken(originalMember.getEmail());
 
     // Redis 저장
     RefreshToken redisRefreshToken = RefreshToken.builder()
@@ -256,8 +256,8 @@ public class MemberController {
     }
 
     // 회원 가입이 되어 있으면 access token & refresh token 발급
-    String accessToken = jwtTokenProvider.createAccessToken(originalMember.getEmail(), originalMember.getName(), originalMember.getRole().toString());
-    String refreshToken = jwtTokenProvider.createRefreshToken(originalMember.getEmail(), originalMember.getName());
+    String accessToken = jwtTokenProvider.createAccessToken(originalMember.getEmail(), originalMember.getRole().toString());
+    String refreshToken = jwtTokenProvider.createRefreshToken(originalMember.getEmail());
 
     // Redis 저장
     RefreshToken redisRefreshToken = RefreshToken.builder()
@@ -337,8 +337,8 @@ public class MemberController {
     }
 
     // 새로운 Access Token && Refresh Token 생성
-    String newAccessToken = jwtTokenProvider.createAccessToken(email, member.getName(), member.getRole().toString());
-    String newRefreshToken = jwtTokenProvider.createRefreshToken(email, member.getName());
+    String newAccessToken = jwtTokenProvider.createAccessToken(email, member.getRole().toString());
+    String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
 
     // 기존 refresh 토큰 갱신 (TTL 다시 설정됨)
     storedToken.setToken(newRefreshToken);
