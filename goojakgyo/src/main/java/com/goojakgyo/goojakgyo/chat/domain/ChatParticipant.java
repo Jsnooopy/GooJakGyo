@@ -27,4 +27,7 @@ public class ChatParticipant extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    // 1대1 채팅일 때 상대방의 이름이 채팅방 이름이 되도록 (사용자 이름이 변경되지 않는다고 가정)
+    private String displayName;
 }

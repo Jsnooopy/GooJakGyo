@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class ChatMessageDto {
     private String message;
     private String senderEmail;
+    private String senderName; // 보낸 사람 이름 추가
 }

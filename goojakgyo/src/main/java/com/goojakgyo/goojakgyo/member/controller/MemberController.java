@@ -94,6 +94,7 @@ public class MemberController {
     Map<String, Object> loginInfo = new HashMap<>();
     loginInfo.put("memberId", member.getId());
     loginInfo.put("accessToken", accessToken);
+    loginInfo.put("name", member.getName());
 
     URI location = URI.create("/member/" + member.getId());
     return ResponseEntity.created(location).header(HttpHeaders.SET_COOKIE, cookie.toString()).body(loginInfo);
@@ -128,6 +129,7 @@ public class MemberController {
     Map<String, Object> loginInfo = new HashMap<>();
     loginInfo.put("memberId", member.getId());
     loginInfo.put("accessToken", accessToken);
+    loginInfo.put("name", member.getName());
 
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(loginInfo);
   }
@@ -177,6 +179,7 @@ public class MemberController {
     Map<String, Object> loginInfo = new HashMap<>();
     loginInfo.put("memberId", originalMember.getId());
     loginInfo.put("accessToken", accessToken);
+    loginInfo.put("name", originalMember.getName());
 
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(loginInfo);
   }
@@ -226,6 +229,7 @@ public class MemberController {
     Map<String, Object> loginInfo = new HashMap<>();
     loginInfo.put("memberId", originalMember.getId());
     loginInfo.put("accessToken", accessToken);
+    loginInfo.put("name", originalMember.getName());
 
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(loginInfo);
   }
@@ -275,6 +279,7 @@ public class MemberController {
     Map<String, Object> loginInfo = new HashMap<>();
     loginInfo.put("memberId", originalMember.getId());
     loginInfo.put("accessToken", accessToken);
+    loginInfo.put("name", originalMember.getName());
 
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(loginInfo);
   }
