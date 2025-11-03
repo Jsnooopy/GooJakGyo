@@ -29,14 +29,12 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final ReadStatusRepository readStatusRepository;
     private final MemberRepository memberRepository;
 
-    public ChatService(ChatRoomRepository chatRoomRepository, ChatParticipantRepository chatParticipantRepository, ChatMessageRepository chatMessageRepository, ReadStatusRepository readStatusRepository, MemberRepository memberRepository) {
+    public ChatService(ChatRoomRepository chatRoomRepository, ChatParticipantRepository chatParticipantRepository, ChatMessageRepository chatMessageRepository, MemberRepository memberRepository) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.chatMessageRepository = chatMessageRepository;
-        this.readStatusRepository = readStatusRepository;
         this.memberRepository = memberRepository;
     }
 
@@ -59,17 +57,10 @@ public class ChatService {
 
         chatMessageRepository.save(chatMessage);
 
-        // 사용자 별로 읽음 여부 저장
-        List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
-        for(ChatParticipant c : chatParticipants) {
-            ReadStatus readStatus = ReadStatus.builder()
-                    .chatRoom(chatRoom)
-                    .member(c.getMember())
-                    .chatMessage(chatMessage)
-                    .isRead(c.getMember().equals(sender))
-                    .build();
-            readStatusRepository.save(readStatus);
-        }
+        // 메시지 보낸 사람은 바로 lastReadMessageId 업데이트 되어야 함
+        ChatParticipant participant = chatParticipantRepository.findByChatRoomAndMember(chatRoom, sender)
+                .orElseThrow(() -> new IllegalArgumentException("채팅 참여자가 아닙니다."));
+        participant.updateLastReadMessageId(chatMessage.getId());
     }
 
     // 채팅방 생성
@@ -89,6 +80,7 @@ public class ChatService {
                 .chatRoom(chatRoom)
                 .member(member)
                 .displayName(chatRoomName) // 그룹채팅방일 땐 그대로 displayName 채팅방 이름으로 설정
+                .lastReadMessageId(-1L) // 채팅방만 개설되었을 때는 마지막 읽은 메시지ID -1로 지정
                 .build();
         chatParticipantRepository.save(chatParticipant);
     }
@@ -138,6 +130,7 @@ public class ChatService {
                 .chatRoom(chatRoom)
                 .member(member)
                 .displayName(roomName)
+                .lastReadMessageId(-1L) // 채팅방만 개설되었을 때는 마지막 읽은 메시지ID -1로 지정
                 .build();
         chatParticipantRepository.save(chatParticipant);
     }
@@ -195,10 +188,17 @@ public class ChatService {
         Member member = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())
                 .orElseThrow(() -> new EntityNotFoundException("member cannot be found"));
 
-        List<ReadStatus> readStatuses = readStatusRepository.findByChatRoomAndMember(chatRoom, member);
-        for (ReadStatus r : readStatuses) {
-            r.updateIsRead(true);
-        }
+        // 현재 방의 가장 마지막 메시지 찾기
+        ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomOrderByIdDesc(chatRoom)
+                .orElse(null);
+
+        if(lastMessage == null) return; // 현재 채팅방에 메시지 없으면 패스
+
+        // 참여자 찾기
+        ChatParticipant participant = chatParticipantRepository.findByChatRoomAndMember(chatRoom, member)
+                .orElseThrow(() -> new IllegalArgumentException("참여자를 찾을 수 없습니다."));
+
+        participant.updateLastReadMessageId(lastMessage.getId());
     }
 
     // 내 채팅방 목록 조회
@@ -211,7 +211,7 @@ public class ChatService {
 
         // 현재 참여자가 속해있는 채팅방에서 읽지 않은 메시지의 개수 구하기
         for (ChatParticipant c : chatParticipants) {
-            Long count = readStatusRepository.countByChatRoomAndMemberAndIsReadFalse(c.getChatRoom(), member);
+            Long count = chatMessageRepository.countByChatRoomAndIdGreaterThan(c.getChatRoom(), c.getLastReadMessageId()); // 안 읽음 메시지 개수 구하기
             String roomDisplayName = c.getDisplayName();
             MyChatListResDto dto = MyChatListResDto.builder()
                     .roomId(c.getChatRoom().getId())

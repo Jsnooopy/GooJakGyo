@@ -1,3 +1,5 @@
+// Not Use : 읽음 처리 테이블 구조 바뀌면서 안 씀
+
 package com.goojakgyo.goojakgyo.chat.domain;
 
 import com.goojakgyo.goojakgyo.common.domain.BaseTimeEntity;
