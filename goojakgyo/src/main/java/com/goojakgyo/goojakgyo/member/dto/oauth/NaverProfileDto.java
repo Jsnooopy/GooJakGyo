@@ -1,4 +1,4 @@
-package com.goojakgyo.goojakgyo.member.dto;
+package com.goojakgyo.goojakgyo.member.dto.oauth;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

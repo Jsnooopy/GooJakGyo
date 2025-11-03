@@ -1,7 +1,7 @@
-package com.goojakgyo.goojakgyo.member.service;
+package com.goojakgyo.goojakgyo.member.service.oauth;
 
-import com.goojakgyo.goojakgyo.member.dto.AccessTokenDto;
-import com.goojakgyo.goojakgyo.member.dto.KakaoProfileDto;
+import com.goojakgyo.goojakgyo.member.dto.oauth.AccessTokenDto;
+import com.goojakgyo.goojakgyo.member.dto.oauth.NaverProfileDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -12,16 +12,19 @@ import org.springframework.web.client.RestClient;
 
 @Slf4j
 @Service
-public class KakaoService {
+public class NaverService {
 
-  @Value("${oauth.kakao.client-id}")
-  private String kakaoClientId;
+  @Value("${oauth.naver.client-id}")
+  private String naverClientId;
 
-  @Value("${oauth.kakao.redirect-uri}")
-  private String kakaoRedirectUri;
+  @Value("${oauth.naver.client-secret}")
+  private String naverClientSecret;
+
+  @Value("${oauth.naver.redirect-uri}")
+  private String naverRedirectUri;
 
   public AccessTokenDto getAccessToken(String code) {
-    // 인가 코드, clientId, redirect_uri, grant_type
+    // 인가 코드, clientId, client_secret, redirect_uri, grant_type
 
     // Spring6부터 RestTemplate 비추천(Future Deprecate)이기 때문에 RestClient 사용
     RestClient restClient = RestClient.create();
@@ -29,29 +32,30 @@ public class KakaoService {
     // MultiValueMap을 통해 자동으로 form-data 형식으로 body 조립 가능
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("code", code);
-    params.add("client_id", kakaoClientId);
-    params.add("redirect_uri", kakaoRedirectUri);
+    params.add("client_id", naverClientId);
+    params.add("client_secret", naverClientSecret);
+    params.add("redirect_uri", naverRedirectUri);
     params.add("grant_type", "authorization_code");
 
     ResponseEntity<AccessTokenDto> response = restClient.post()
-        .uri("https://kauth.kakao.com/oauth/token")
+        .uri("https://nid.naver.com/oauth2.0/token")
         .header("Content-Type", "application/x-www-form-urlencoded")
         .body(params)
         .retrieve()
         .toEntity(AccessTokenDto.class);
 
-    log.info("AccessToken JSON : {}", response.getBody());
+    log.info("Access Token JSON : {}", response.getBody());
     return response.getBody();
   }
 
-  public KakaoProfileDto getKakaoProfile(String token) {
+  public NaverProfileDto getNaverProfile(String token) {
     RestClient restClient = RestClient.create();
 
-    ResponseEntity<KakaoProfileDto> response = restClient.get()
-        .uri("https://kapi.kakao.com/v2/user/me")
+    ResponseEntity<NaverProfileDto> response = restClient.get()
+        .uri("https://openapi.naver.com/v1/nid/me")
         .header("Authorization", "Bearer " + token)
         .retrieve()
-        .toEntity(KakaoProfileDto.class);
+        .toEntity(NaverProfileDto.class);
 
     log.info("Profile JSON : {}", response.getBody());
     return response.getBody();

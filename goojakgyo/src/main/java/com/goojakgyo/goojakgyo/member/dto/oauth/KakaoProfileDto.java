@@ -1,10 +1,9 @@
-package com.goojakgyo.goojakgyo.member.dto;
+package com.goojakgyo.goojakgyo.member.dto.oauth;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.context.annotation.Profile;
 
 @Data
 @AllArgsConstructor

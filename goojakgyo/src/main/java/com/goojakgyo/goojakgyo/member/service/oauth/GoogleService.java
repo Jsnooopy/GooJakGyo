@@ -1,9 +1,8 @@
-package com.goojakgyo.goojakgyo.member.service;
+package com.goojakgyo.goojakgyo.member.service.oauth;
 
-import com.goojakgyo.goojakgyo.member.dto.AccessTokenDto;
-import com.goojakgyo.goojakgyo.member.dto.NaverProfileDto;
+import com.goojakgyo.goojakgyo.member.dto.oauth.AccessTokenDto;
+import com.goojakgyo.goojakgyo.member.dto.oauth.GoogleProfileDto;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.Token;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,16 +12,16 @@ import org.springframework.web.client.RestClient;
 
 @Slf4j
 @Service
-public class NaverService {
+public class GoogleService {
 
-  @Value("${oauth.naver.client-id}")
-  private String naverClientId;
+  @Value("${oauth.google.client-id}")
+  private String googleClientId;
 
-  @Value("${oauth.naver.client-secret}")
-  private String naverClientSecret;
+  @Value("${oauth.google.client-secret}")
+  private String googleClientSecret;
 
-  @Value("${oauth.naver.redirect-uri}")
-  private String naverRedirectUri;
+  @Value("${oauth.google.redirect-uri}")
+  private String googleRedirectUri;
 
   public AccessTokenDto getAccessToken(String code) {
     // 인가 코드, clientId, client_secret, redirect_uri, grant_type
@@ -33,32 +32,34 @@ public class NaverService {
     // MultiValueMap을 통해 자동으로 form-data 형식으로 body 조립 가능
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("code", code);
-    params.add("client_id", naverClientId);
-    params.add("client_secret", naverClientSecret);
-    params.add("redirect_uri", naverRedirectUri);
+    params.add("client_id", googleClientId);
+    params.add("client_secret", googleClientSecret);
+    params.add("redirect_uri", googleRedirectUri);
     params.add("grant_type", "authorization_code");
 
-    ResponseEntity<AccessTokenDto> response = restClient.post()
-        .uri("https://nid.naver.com/oauth2.0/token")
+    ResponseEntity<AccessTokenDto> response =  restClient.post()
+        .uri("https://oauth2.googleapis.com/token")
         .header("Content-Type", "application/x-www-form-urlencoded")
+    // ?code=xxxx&client_id=yyyy&
         .body(params)
+    // retrieve:응답 body값만을 추출
         .retrieve()
         .toEntity(AccessTokenDto.class);
 
-    log.info("Access Token JSON : {}", response.getBody());
+    log.info("AccessToken JSON : {}", response.getBody());
     return response.getBody();
   }
 
-  public NaverProfileDto getNaverProfile(String token) {
+  public GoogleProfileDto getGoogleProfile(String token) {
     RestClient restClient = RestClient.create();
-
-    ResponseEntity<NaverProfileDto> response = restClient.get()
-        .uri("https://openapi.naver.com/v1/nid/me")
+    ResponseEntity<GoogleProfileDto> response =  restClient.get()
+        .uri("https://openidconnect.googleapis.com/v1/userinfo")
         .header("Authorization", "Bearer " + token)
         .retrieve()
-        .toEntity(NaverProfileDto.class);
+        .toEntity(GoogleProfileDto.class);
 
     log.info("Profile JSON : {}", response.getBody());
     return response.getBody();
   }
+
 }

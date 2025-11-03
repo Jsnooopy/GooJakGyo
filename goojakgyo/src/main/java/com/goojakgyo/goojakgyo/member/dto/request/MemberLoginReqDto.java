@@ -1,4 +1,4 @@
-package com.goojakgyo.goojakgyo.member.dto;
+package com.goojakgyo.goojakgyo.member.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
