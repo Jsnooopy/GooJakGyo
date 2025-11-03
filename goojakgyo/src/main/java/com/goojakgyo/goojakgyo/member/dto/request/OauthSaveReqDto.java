@@ -1,4 +1,4 @@
-package com.goojakgyo.goojakgyo.member.dto;
+package com.goojakgyo.goojakgyo.member.dto.request;
 
 import com.goojakgyo.goojakgyo.member.domain.Role;
 import com.goojakgyo.goojakgyo.member.domain.SocialType;

@@ -1,7 +1,7 @@
-package com.goojakgyo.goojakgyo.member.service;
+package com.goojakgyo.goojakgyo.member.service.oauth;
 
-import com.goojakgyo.goojakgyo.member.dto.AccessTokenDto;
-import com.goojakgyo.goojakgyo.member.dto.GoogleProfileDto;
+import com.goojakgyo.goojakgyo.member.dto.oauth.AccessTokenDto;
+import com.goojakgyo.goojakgyo.member.dto.oauth.KakaoProfileDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -12,19 +12,16 @@ import org.springframework.web.client.RestClient;
 
 @Slf4j
 @Service
-public class GoogleService {
+public class KakaoService {
 
-  @Value("${oauth.google.client-id}")
-  private String googleClientId;
+  @Value("${oauth.kakao.client-id}")
+  private String kakaoClientId;
 
-  @Value("${oauth.google.client-secret}")
-  private String googleClientSecret;
-
-  @Value("${oauth.google.redirect-uri}")
-  private String googleRedirectUri;
+  @Value("${oauth.kakao.redirect-uri}")
+  private String kakaoRedirectUri;
 
   public AccessTokenDto getAccessToken(String code) {
-    // 인가 코드, clientId, client_secret, redirect_uri, grant_type
+    // 인가 코드, clientId, redirect_uri, grant_type
 
     // Spring6부터 RestTemplate 비추천(Future Deprecate)이기 때문에 RestClient 사용
     RestClient restClient = RestClient.create();
@@ -32,17 +29,14 @@ public class GoogleService {
     // MultiValueMap을 통해 자동으로 form-data 형식으로 body 조립 가능
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("code", code);
-    params.add("client_id", googleClientId);
-    params.add("client_secret", googleClientSecret);
-    params.add("redirect_uri", googleRedirectUri);
+    params.add("client_id", kakaoClientId);
+    params.add("redirect_uri", kakaoRedirectUri);
     params.add("grant_type", "authorization_code");
 
-    ResponseEntity<AccessTokenDto> response =  restClient.post()
-        .uri("https://oauth2.googleapis.com/token")
+    ResponseEntity<AccessTokenDto> response = restClient.post()
+        .uri("https://kauth.kakao.com/oauth/token")
         .header("Content-Type", "application/x-www-form-urlencoded")
-    // ?code=xxxx&client_id=yyyy&
         .body(params)
-    // retrieve:응답 body값만을 추출
         .retrieve()
         .toEntity(AccessTokenDto.class);
 
@@ -50,16 +44,16 @@ public class GoogleService {
     return response.getBody();
   }
 
-  public GoogleProfileDto getGoogleProfile(String token) {
+  public KakaoProfileDto getKakaoProfile(String token) {
     RestClient restClient = RestClient.create();
-    ResponseEntity<GoogleProfileDto> response =  restClient.get()
-        .uri("https://openidconnect.googleapis.com/v1/userinfo")
+
+    ResponseEntity<KakaoProfileDto> response = restClient.get()
+        .uri("https://kapi.kakao.com/v2/user/me")
         .header("Authorization", "Bearer " + token)
         .retrieve()
-        .toEntity(GoogleProfileDto.class);
+        .toEntity(KakaoProfileDto.class);
 
     log.info("Profile JSON : {}", response.getBody());
     return response.getBody();
   }
-
 }
