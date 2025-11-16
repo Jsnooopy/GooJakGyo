@@ -13,6 +13,7 @@ import com.goojakgyo.goojakgyo.chat.repository.ChatRoomRepository;
 import com.goojakgyo.goojakgyo.chat.repository.ReadStatusRepository;
 import com.goojakgyo.goojakgyo.member.domain.Member;
 import com.goojakgyo.goojakgyo.member.repository.MemberRepository;
+import com.goojakgyo.goojakgyo.sse.SseService;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,12 +31,14 @@ public class ChatService {
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
+    private final SseService sseService; // 실시간 이벤트 알람 (SSE) 위한 서비스
 
-    public ChatService(ChatRoomRepository chatRoomRepository, ChatParticipantRepository chatParticipantRepository, ChatMessageRepository chatMessageRepository, MemberRepository memberRepository) {
+    public ChatService(ChatRoomRepository chatRoomRepository, ChatParticipantRepository chatParticipantRepository, ChatMessageRepository chatMessageRepository, MemberRepository memberRepository, SseService sseService) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.memberRepository = memberRepository;
+        this.sseService = sseService;
     }
 
     // 메시지 DB에 저장
@@ -61,6 +64,12 @@ public class ChatService {
         ChatParticipant participant = chatParticipantRepository.findByChatRoomAndMember(chatRoom, sender)
                 .orElseThrow(() -> new IllegalArgumentException("채팅 참여자가 아닙니다."));
         participant.updateLastReadMessageId(chatMessage.getId());
+
+        // 해당 방 참여자들에게 SSE 이벤트 보내기
+        List<ChatParticipant> participants = chatParticipantRepository.findByChatRoom(chatRoom);
+        for(ChatParticipant p : participants) {
+            sseService.sendNewMessageEvent(p.getId(), roomId);
+        }
     }
 
     // 채팅방 생성
