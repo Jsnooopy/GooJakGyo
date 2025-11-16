@@ -68,7 +68,8 @@ public class ChatService {
         // 해당 방 참여자들에게 SSE 이벤트 보내기
         List<ChatParticipant> participants = chatParticipantRepository.findByChatRoom(chatRoom);
         for(ChatParticipant p : participants) {
-            sseService.sendNewMessageEvent(p.getId(), roomId);
+            Long unReadCount = chatMessageRepository.countByChatRoomAndIdGreaterThan(chatRoom, p.getLastReadMessageId()); // 안 읽음 메시지 개수 구하기
+            sseService.sendNewMessageEvent(p.getId(), roomId, unReadCount);
         }
     }
 

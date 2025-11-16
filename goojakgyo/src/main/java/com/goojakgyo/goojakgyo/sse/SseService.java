@@ -33,14 +33,15 @@ public class SseService {
 
     // ChatService에서 호출됨
     // 채팅방에서 메시지 보냈을 때 해당 채팅방에 속한 유저에게 SSE 전송
-    public void sendNewMessageEvent(Long memberId, Long roomId) {
+    public void sendNewMessageEvent(Long memberId, Long roomId, Long unReadCount) {
         SseEmitter emitter = emitters.get(memberId);
         if(emitter != null) {
+            System.out.println("roomId: " + roomId + " unReadCount: " + unReadCount);
             try {
                 emitter.send(
                         SseEmitter.event()
                                 .name("new-message")
-                                .data(roomId)
+                                .data(Map.of("roomId", roomId, "unReadCount", unReadCount))
                 );
             } catch (Exception e) {
                 emitters.remove(memberId);
