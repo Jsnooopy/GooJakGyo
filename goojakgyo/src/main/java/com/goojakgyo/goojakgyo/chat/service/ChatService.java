@@ -3,18 +3,17 @@ package com.goojakgyo.goojakgyo.chat.service;
 import com.goojakgyo.goojakgyo.chat.domain.ChatMessage;
 import com.goojakgyo.goojakgyo.chat.domain.ChatParticipant;
 import com.goojakgyo.goojakgyo.chat.domain.ChatRoom;
-import com.goojakgyo.goojakgyo.chat.domain.ReadStatus;
 import com.goojakgyo.goojakgyo.chat.dto.ChatMessageDto;
 import com.goojakgyo.goojakgyo.chat.dto.ChatRoomListResDto;
 import com.goojakgyo.goojakgyo.chat.dto.MyChatListResDto;
 import com.goojakgyo.goojakgyo.chat.repository.ChatMessageRepository;
 import com.goojakgyo.goojakgyo.chat.repository.ChatParticipantRepository;
 import com.goojakgyo.goojakgyo.chat.repository.ChatRoomRepository;
-import com.goojakgyo.goojakgyo.chat.repository.ReadStatusRepository;
 import com.goojakgyo.goojakgyo.member.domain.Member;
 import com.goojakgyo.goojakgyo.member.repository.MemberRepository;
-import jakarta.persistence.Entity;
+import com.goojakgyo.goojakgyo.sse.SseService;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,20 +24,15 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantRepository chatParticipantRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final ReadStatusRepository readStatusRepository;
     private final MemberRepository memberRepository;
+    private final SseService sseService; // 실시간 이벤트 알람 (SSE) 위한 서비스
 
-    public ChatService(ChatRoomRepository chatRoomRepository, ChatParticipantRepository chatParticipantRepository, ChatMessageRepository chatMessageRepository, ReadStatusRepository readStatusRepository, MemberRepository memberRepository) {
-        this.chatRoomRepository = chatRoomRepository;
-        this.chatParticipantRepository = chatParticipantRepository;
-        this.chatMessageRepository = chatMessageRepository;
-        this.readStatusRepository = readStatusRepository;
-        this.memberRepository = memberRepository;
-    }
+    public static final Long NOT_READ_YET = -1L; // 채팅방 개설 시 마지막 읽은 메시지 없으므로 -1로 지정
 
     // 메시지 DB에 저장
     public void saveMessage(Long roomId, ChatMessageDto chatMessageDto) {
@@ -59,16 +53,17 @@ public class ChatService {
 
         chatMessageRepository.save(chatMessage);
 
-        // 사용자 별로 읽음 여부 저장
-        List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
-        for(ChatParticipant c : chatParticipants) {
-            ReadStatus readStatus = ReadStatus.builder()
-                    .chatRoom(chatRoom)
-                    .member(c.getMember())
-                    .chatMessage(chatMessage)
-                    .isRead(c.getMember().equals(sender))
-                    .build();
-            readStatusRepository.save(readStatus);
+        sendMessageEventToRoom(roomId);
+    }
+
+    // 메시지 보냈을 때 방에 있는 참여자들에게 SSE 이벤트 보내기
+    public void sendMessageEventToRoom(Long roomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() -> new EntityNotFoundException("room cannot be found"));
+        List<ChatParticipant> participants = chatParticipantRepository.findByChatRoom(chatRoom);
+
+        for(ChatParticipant p : participants) {
+            Long unReadCount = chatMessageRepository.countByChatRoomAndIdGreaterThan(chatRoom, p.getLastReadMessageId()); // 안 읽음 메시지 개수 구하기
+            sseService.sendNewMessageEvent(p.getId(), roomId, unReadCount);
         }
     }
 
@@ -89,6 +84,7 @@ public class ChatService {
                 .chatRoom(chatRoom)
                 .member(member)
                 .displayName(chatRoomName) // 그룹채팅방일 땐 그대로 displayName 채팅방 이름으로 설정
+                .lastReadMessageId(NOT_READ_YET) // 채팅방만 개설되었을 때는 마지막 읽은 메시지ID NOT_READ_YET(-1)로 지정
                 .build();
         chatParticipantRepository.save(chatParticipant);
     }
@@ -138,6 +134,7 @@ public class ChatService {
                 .chatRoom(chatRoom)
                 .member(member)
                 .displayName(roomName)
+                .lastReadMessageId(-1L) // 채팅방만 개설되었을 때는 마지막 읽은 메시지ID -1로 지정
                 .build();
         chatParticipantRepository.save(chatParticipant);
     }
@@ -195,10 +192,17 @@ public class ChatService {
         Member member = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())
                 .orElseThrow(() -> new EntityNotFoundException("member cannot be found"));
 
-        List<ReadStatus> readStatuses = readStatusRepository.findByChatRoomAndMember(chatRoom, member);
-        for (ReadStatus r : readStatuses) {
-            r.updateIsRead(true);
-        }
+        // 현재 방의 가장 마지막 메시지 찾기
+        ChatMessage lastMessage = chatMessageRepository.findTopByChatRoomOrderByIdDesc(chatRoom)
+                .orElse(null);
+
+        if(lastMessage == null) return; // 현재 채팅방에 메시지 없으면 패스
+
+        // 참여자 찾기
+        ChatParticipant participant = chatParticipantRepository.findByChatRoomAndMember(chatRoom, member)
+                .orElseThrow(() -> new IllegalArgumentException("참여자를 찾을 수 없습니다."));
+
+        participant.updateLastReadMessageId(lastMessage.getId());
     }
 
     // 내 채팅방 목록 조회
@@ -211,7 +215,7 @@ public class ChatService {
 
         // 현재 참여자가 속해있는 채팅방에서 읽지 않은 메시지의 개수 구하기
         for (ChatParticipant c : chatParticipants) {
-            Long count = readStatusRepository.countByChatRoomAndMemberAndIsReadFalse(c.getChatRoom(), member);
+            Long count = chatMessageRepository.countByChatRoomAndIdGreaterThan(c.getChatRoom(), c.getLastReadMessageId()); // 안 읽음 메시지 개수 구하기
             String roomDisplayName = c.getDisplayName();
             MyChatListResDto dto = MyChatListResDto.builder()
                     .roomId(c.getChatRoom().getId())

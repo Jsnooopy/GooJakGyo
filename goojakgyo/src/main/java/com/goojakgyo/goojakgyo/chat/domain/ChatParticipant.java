@@ -30,4 +30,11 @@ public class ChatParticipant extends BaseTimeEntity {
 
     // 1대1 채팅일 때 상대방의 이름이 채팅방 이름이 되도록 (사용자 이름이 변경되지 않는다고 가정)
     private String displayName;
+
+    // 채팅방에 입장 후 가장 마지막으로 읽은 메시지 ID 저장
+    private Long lastReadMessageId;
+
+    public void updateLastReadMessageId(Long lastReadMessageId) {
+        this.lastReadMessageId = lastReadMessageId;
+    }
 }
