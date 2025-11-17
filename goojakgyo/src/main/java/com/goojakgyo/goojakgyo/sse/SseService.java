@@ -11,10 +11,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SseService {
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // SSE 연결 유지할 최대 시간 : 1시간
 
     // SSE 구독 시도
     public SseEmitter subscribe(Long memberId) {
-        SseEmitter emitter = new SseEmitter(60L * 1000 * 60); // 1시간
+        SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
         emitters.put(memberId, emitter); // memberId에게 이제부터 Event를 보내겠다
 
         emitter.onCompletion(() -> emitters.remove(memberId));
